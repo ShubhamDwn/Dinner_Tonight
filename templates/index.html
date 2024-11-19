@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DinnerTonight - Interactive Bio Generator</title>
+  <link rel="stylesheet" href="/static/css/style.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/js/all.min.js" defer></script>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1><i class="fas fa-utensils"></i> DinnerTonight</h1>
+      <p>Create your personalized bio effortlessly!</p>
+    </header>
+
+    <main>
+      <form id="bio-form">
+        <div class="form-group">
+          <label for="career">Select Your Career:</label>
+          <select id="career" name="career">
+            {% for option in categories.careers %}
+            <option value="{{ option }}">{{ option }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="personality">Choose a Personality Trait:</label>
+          <select id="personality" name="personality">
+            {% for option in categories.personality_traits %}
+            <option value="{{ option }}">{{ option }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="interests">Pick Your Interests:</label>
+          <select id="interests" name="interests">
+            {% for option in categories.interests %}
+            <option value="{{ option }}">{{ option }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="relationship_goal">Relationship Goal:</label>
+          <select id="relationship_goal" name="relationship_goal">
+            {% for option in categories.relationship_goals %}
+            <option value="{{ option }}">{{ option }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <button type="button" id="generate-btn" class="btn">Generate Bio</button>
+      </form>
+
+      <div id="result" class="result hidden">
+        <h2>Your Personalized Bio:</h2>
+        <p id="bio-content">Your bio will appear here...</p>
+      </div>
+    </main>
+
+    <footer>
+      <p>Powered by AI | Designed for you ❤️</p>
+    </footer>
+  </div>
+
+  <script>
+    document.getElementById("generate-btn").addEventListener("click", async () => {
+      const career = document.getElementById("career").value;
+      const personality = document.getElementById("personality").value;
+      const interests = document.getElementById("interests").value;
+      const relationshipGoal = document.getElementById("relationship_goal").value;
+
+      const resultDiv = document.getElementById("result");
+      const bioContent = document.getElementById("bio-content");
+      bioContent.innerHTML = "Generating your bio... <i class='fas fa-spinner fa-spin'></i>";
+      resultDiv.classList.remove("hidden");
+
+      try {
+        const response = await fetch("/generate_bio", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ career, personality, interests, relationship_goal: relationshipGoal }),
+        });
+
+        const data = await response.json();
+
+        if (data.bio) {
+          bioContent.innerHTML = data.bio;
+        } else {
+          bioContent.innerHTML = `<span class="error">Error: ${data.error}</span>`;
+        }
+      } catch (error) {
+        bioContent.innerHTML = `<span class="error">Unable to generate bio. Please try again later.</span>`;
+      }
+    });
+  </script>
+</body>
+</html>
