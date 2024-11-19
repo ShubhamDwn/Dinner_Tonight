@@ -1,10 +1,13 @@
+import requests
 from flask import Flask, request, jsonify, render_template
-from transformers import pipeline
 
 app = Flask(__name__)
 
-# Load Hugging Face model
-generator = pipeline("text-generation", model="distilgpt2")
+# Hugging Face API URL and Token
+API_URL = "https://api-inference.huggingface.co/models/gpt2"
+API_TOKEN = "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"
+
+headers = {"Authorization": f"Bearer {API_TOKEN}"}
 
 # Predefined categories
 categories = {
@@ -26,13 +29,20 @@ def generate_bio():
     interests = data.get("interests", "a variety of passions")
     relationship_goal = data.get("relationship_goal", "a meaningful connection")
 
-    # Generate bio using Hugging Face model
+    # Create prompt
     prompt = (
         f"I am a {personality} {career} who loves {interests}. "
         f"I am seeking {relationship_goal} relationships."
     )
-    result = generator(prompt, max_length=100, num_return_sequences=1)
-    bio = result[0]['generated_text']
+
+    # Make API request
+    response = requests.post(API_URL, headers=headers, json={"inputs": prompt})
+
+    # Parse response
+    if response.status_code == 200:
+        bio = response.json()[0]['generated_text']
+    else:
+        bio = "Sorry, the text generation service is currently unavailable."
 
     return jsonify({"bio": bio})
 
